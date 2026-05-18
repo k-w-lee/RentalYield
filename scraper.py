@@ -48,7 +48,8 @@ DISTRICT_CACHE = PROJECT_ROOT / "district_cache.yaml"
 STATE_DB = PROJECT_ROOT / "scrape_state.db"
 RENT_CACHE_DB = PROJECT_ROOT / "rent_cache.db"
 OUTPUT_DIR = PROJECT_ROOT / "output"
-ALL_LISTINGS_CSV = OUTPUT_DIR / "all_listings.csv"
+ALL_SALES_CSV = OUTPUT_DIR / "all_sales_listings.csv"
+ALL_RENTALS_CSV = OUTPUT_DIR / "all_rentals_listings.csv"
 SHORTLIST_CSV = OUTPUT_DIR / "top_shortlist.csv"
 
 # Number of days before a full re-scrape is triggered
@@ -741,6 +742,47 @@ def write_csv(results: list[dict], output_path: Path):
     log.info(f"Wrote {len(results)} rows to {output_path}")
 
 
+def write_rent_listings_csv(db_path: str, output_path: Path):
+    """Export raw rent listing data from rent_cache.db to CSV for traceback."""
+    if not os.path.exists(db_path):
+        log.warning(f"Rent cache DB not found: {db_path}")
+        return
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.execute(
+        "SELECT project_name, listing_id, rent, bedrooms, area_sqft, "
+        "       address, url, scraped_at "
+        "FROM rent_project_listings ORDER BY project_name, bedrooms"
+    )
+    rows = cur.fetchall()
+    conn.close()
+
+    if not rows:
+        log.warning("No rent listings found in cache")
+        return
+
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    fieldnames = ["project_name", "listing_id", "rent", "bedrooms",
+                  "area_sqft", "address", "url", "scraped_at"]
+
+    with open(output_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
+        writer.writeheader()
+        for row in rows:
+            writer.writerow({
+                "project_name": row[0],
+                "listing_id": row[1],
+                "rent": row[2],
+                "bedrooms": row[3],
+                "area_sqft": row[4],
+                "address": row[5],
+                "url": row[6],
+                "scraped_at": row[7],
+            })
+
+    log.info(f"Wrote {len(rows)} rent listings to {output_path}")
+
+
 def print_summary(all_results: list[dict], shortlist: list[dict]):
     """Print a human-readable summary to stdout."""
     print(f"\n{'=' * 70}")
@@ -884,8 +926,12 @@ def run_scraper(resume: bool = False, dry_run: bool = False,
     # Sort by total_score descending
     all_results.sort(key=lambda x: x.get("total_score", 0), reverse=True)
 
-    # Write full CSV
-    write_csv(all_results, ALL_LISTINGS_CSV)
+    # Write full sales CSV
+    write_csv(all_results, ALL_SALES_CSV)
+    log.info(f"Sales listings: {len(all_results)} → {ALL_SALES_CSV}")
+
+    # Write rent listings CSV (raw rent data for traceback)
+    write_rent_listings_csv(str(RENT_CACHE_DB), ALL_RENTALS_CSV)
 
     # Write shortlist (top 20)
     shortlist = all_results[:20]

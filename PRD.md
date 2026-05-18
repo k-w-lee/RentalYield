@@ -1,6 +1,6 @@
 # PRD: PropertyGuru Rental Yield Scraper & Scoring System
 
-**Version:** 1.3
+**Version:** 1.4
 **Date:** 2026-05-18 — Implemented. See deliverables below.
 **Author:** [Your Name]
 
@@ -171,7 +171,7 @@ PHASE D — JOIN & CALCULATE
 PHASE E — OUTPUT
 6.  Deduplicate across areas (same listing URL → keep first)
 7.  Sort descending by score
-8.  Write all_listings.csv + top_shortlist.csv
+8.  Write all_sales_listings.csv + all_rentals_listings.csv + top_shortlist.csv
 9.  Print summary: areas scraped, listings found, top 10
 ```
 
@@ -391,8 +391,9 @@ All values admin-changeable — no code changes needed.
 | 6 | `config.yaml` | All tunable parameters |
 | 7 | `rent_cache.db` | Auto-created SQLite — cached rent data per project |
 | 8 | `scrape_state.db` | Auto-created SQLite — resume state |
-| 9 | `output/all_listings.csv` | Full scraped dataset with all metrics |
-| 10 | `output/top_shortlist.csv` | Ranked shortlist (top 20) |
+| 9 | `output/all_sales_listings.csv` | Full scraped dataset with all sale metrics + rent estimates |
+| 10 | `output/all_rentals_listings.csv` | Raw rent listing data for traceback |
+| 11 | `output/top_shortlist.csv` | Ranked shortlist (top 20) |
 | 11 | `README.md` | Setup & usage instructions |
 
 ---
@@ -467,7 +468,8 @@ RentalYield/
 ├── loan.py                         ← Amortisation & cash flow
 ├── score.py                        ← Scoring engine
 ├── output/
-│   ├── all_listings.csv            ← Full scored dataset
+│   ├── all_sales_listings.csv      ← Full scored dataset
+│   ├── all_rentals_listings.csv    ← Raw rent listings for traceback
 │   └── top_shortlist.csv           ← Ranked top 20
 ├── resources/
 │   └── context.md                  ← Source of scoring weights etc.

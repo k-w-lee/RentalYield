@@ -51,8 +51,9 @@ If you get `no module named 'lxml'`, install via `pip install lxml` or the scrap
 
 ## Output
 
-- `output/all_listings.csv` — All scored & ranked listings
-- `output/top_shortlist.csv` — Top 20 by weighted score
+- `output/all_sales_listings.csv` — All scored & ranked sale listings with rent estimates
+- `output/all_rentals_listings.csv` — Raw rent listing data for traceback
+- `output/top_shortlist.csv` — Top 20 shortlist by weighted score
 - Terminal summary showing top 10 with score, price, cash flow, yield
 
 ## Files
