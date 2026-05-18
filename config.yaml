@@ -1,0 +1,53 @@
+scraper:
+  min_price: 100000
+  max_price: 1000000
+  min_top_year_sale: 2009
+  max_top_year_sale: 2026
+  min_top_year_rent: 2008
+  max_top_year_rent: 2026
+  request_delay_seconds: 2
+  max_retries: 3
+
+# User agents rotated per request
+user_agents:
+  - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+  - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+  - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+  - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+
+loan:
+  down_payment_percent: 10
+  tenure_years: 35
+  interest_rate_percent: 4.0
+
+costs:
+  maintenance_fee_default_psf: 0.30
+  repairs_buffer_percent: 5           # of monthly rent
+  vacancy_buffer_percent: 8.33        # ~1 month/year
+  tax_insurance_monthly: 150          # RM
+  agent_fee_percent: 0                # 0 if self-manage
+
+scoring:
+  weights:
+    net_cash_flow: 0.25
+    net_rental_yield: 0.20
+    rental_demand: 0.15
+    price_vs_similar: 0.15
+    mrt_access: 0.10
+    competition_risk: 0.10
+    building_quality: 0.05
+  thresholds:
+    cash_flow_perfect: 500            # RM/month → score 10
+    net_yield_perfect: 6.0            # % → score 10
+    building_quality_min_year: 2008
+    building_quality_max_year: 2026
+  mrt_manual_scores:
+    # Phase 1: manual MRT scores per area (0–10)
+    # Phase 2: auto-calculated from GIS
+    default: 5
+    # Populate as needed:
+    # Desa Parkcity: 7
+    # Mont Kiara: 6
+    # Bangsar: 8
+    # KL City Centre: 9
