@@ -445,6 +445,8 @@ def scrape_rent_for_projects(projects: list[dict], config: dict,
         # Re-ensure schema (covers fresh DB after resume reset)
         rp.create_rent_cache_schema(db_path)
 
+        log.info(f"Rent: {project_name} {district_code or '(no code)'}")
+
         # Skip if already cached with data for any bedroom count
         conn = sqlite3.connect(db_path)
         try:
