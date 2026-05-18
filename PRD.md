@@ -124,7 +124,7 @@ Where possible, infer target tenant type from location context (e.g., university
 ### 5.1. Stack
 
 - **Language:** Python 3
-- **Scraping:** `requests` + `BeautifulSoup` (fallback to `Playwright` if JS-rendered)
+- **Scraping:** `cloudscraper` (bypasses Cloudflare) + `BeautifulSoup` for parse + built-in Next.js `__NEXT_DATA__` JSON extraction
 - **Data storage:** CSV (output); SQLite (dedup, rent cache, resume state)
 - **Loan calculator:** Standard amortisation formula
 - **Scoring:** Python module with configurable weights from `config.yaml`
@@ -142,9 +142,13 @@ PHASE A — DISCOVERY
 PHASE B — SALE SCRAPE
 3.  For each area with known districtCode:
     a. Paginate sale listings (2s delay between pages)
-    b. Parse: price, sqft, bedrooms, bathrooms, project name, URL, maintenance fee
-    c. Collect unique project names → feed Phase C
-    d. Save resume state (area, page) to scrape_state.db
+    b. Extract `__NEXT_DATA__` JSON from page HTML → `pageData.data.listingsData[*]`
+    c. Parse each listing: price (from `gaProduct.price`), sqft, bedrooms, bathrooms,
+       project name (`localizedTitle` + address), build year, unit area, listing URL,
+       maintenance fee (when available), listing ID
+    d. Collect unique project names → feed Phase C
+    e. Save resume state (area, page) to scrape_state.db
+    f. Use `paginationData.totalPages` to stop when exceeded
 
 PHASE C — RENT SCRAPE
 4.  For each unique project from Phase B:
@@ -188,8 +192,8 @@ PHASE E — OUTPUT
 For each area in cities.json:
   - Build: /property-for-sale?listingType=sale&_freetextDisplay=<area>&...
   - Send request → follow redirects
-  - Parse districtCode from final URL (or page metadata)
-  - If resolved → cache: area_cache.yaml {area: {state: code}}
+  - Parse districtCode from final URL (or `districtConfig.code` in `__NEXT_DATA__`)
+  - If resolved → cache: district_cache.yaml {area: {state: code}}
 
 Edge cases:
   - Multiple areas → same code (e.g. "Desa Parkcity" / "Desa Park City")
@@ -197,6 +201,30 @@ Edge cases:
   - No results for area → log and skip
   - Code changes between runs → re-discover each full cycle
 ```
+
+### 5.5. Page Data Extraction (Next.js)
+
+PropertyGuru is built on Next.js. Listing data is serialised into the page HTML via:
+
+```
+<script id="__NEXT_DATA__" type="application/json">
+  { "props": { "pageProps": { "pageData": { "data": { ... } } } } }
+</script>
+```
+
+**Listing data location:** `.__NEXT_DATA__.props.pageProps.pageData.data.listingsData[*]`
+- `listingData.id` — unique listing ID
+- `listingData.localizedTitle` — project name
+- `listingData.fullAddress` — address string
+- `listingData.listingFeatures` — array of feature groups (bedrooms, bathrooms, area, property type, tenure, build year)
+- `listingData.property.id` — project ID
+- `listingData.property.typeCode` — SALE or RENT
+- `gaProduct.price` — price as string integer
+- `gaProduct.brand` — developer name
+- `paginationData` — currentPage, totalPages
+- `segment.legacyParameters.metaData.Price` — price as number
+
+**No HTML parsing needed** — all structured data is in the embedded JSON.
 
 ---
 
@@ -373,8 +401,9 @@ All values admin-changeable — no code changes needed.
 
 | Risk | Mitigation |
 |---|---|
-| PropertyGuru requires JS rendering | Test `requests` + BS4 first; fallback to `Playwright` |
-| Rate limiting / IP blocking | 2s between pages; rotating user-agents |
+| Cloudflare bot protection | Use `cloudscraper` (TLS fingerprint + cookie reverse-engineer) — confirmed working on 2026-05-18 |
+| Rate limiting / IP blocking | 2s between pages; rotating user-agents from config |
+| Next.js client-side rendering bypass | Extract listing data from `__NEXT_DATA__` script tag (server-serialised JSON) — no Playwright needed |
 | Missing maintenance fee | Configurable default in `config.yaml` |
 | Missing rental data for some projects | Area-level median fallback |
 | URL structure changes | Log errors prominently; flexible URL builder |
