@@ -867,12 +867,7 @@ def run_scraper(resume: bool = False, dry_run: bool = False,
     area_count = 0
 
     # Count total areas for progress bar
-    total_areas = sum(
-        len([a for a in areas
-             if not (resume and get_scrape_state(str(STATE_DB), a) and
-                     get_scrape_state(str(STATE_DB), a)["completed"])])
-        for areas in cities.values()
-    )
+    total_areas = sum(len(areas) for areas in cities.values())
     if max_areas:
         total_areas = min(total_areas, max_areas)
 
