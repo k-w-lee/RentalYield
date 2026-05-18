@@ -25,6 +25,7 @@ import sqlite3
 import statistics
 import sys
 import time
+import re
 from datetime import datetime, timedelta
 from pathlib import Path
 from tqdm import tqdm
@@ -785,6 +786,112 @@ def write_rent_listings_csv(db_path: str, output_path: Path):
     log.info(f"Wrote {len(rows)} rent listings to {output_path}")
 
 
+def write_area_progress_csv(state_db: str, rent_cache_db: str,
+                            cities_path: str, district_cache_path: str):
+    """Write area_progress.csv showing code, state, listings, rent data per area."""
+    import json
+    import yaml
+
+    # Load cities
+    with open(cities_path) as f:
+        cities = json.load(f)
+
+    # Load district cache
+    district_cache = {}
+    if Path(district_cache_path).exists():
+        with open(district_cache_path) as f:
+            district_cache = yaml.safe_load(f) or {}
+
+    # Load scrape state
+    scrape_state = {}
+    if Path(state_db).exists():
+        conn = sqlite3.connect(state_db)
+        cur = conn.execute(
+            "SELECT area_name, completed, last_page, total_pages, scraped_at "
+            "FROM scrape_state"
+        )
+        for row in cur.fetchall():
+            scrape_state[row[0]] = {
+                "completed": bool(row[1]),
+                "last_page": row[2],
+                "total_pages": row[3],
+                "scraped_at": row[4],
+            }
+        conn.close()
+
+    # Count sale listings per area
+    sale_counts = {}
+    if Path(state_db).exists():
+        conn = sqlite3.connect(state_db)
+        try:
+            cur = conn.execute(
+                "SELECT area_name, COUNT(*) FROM sale_listings "
+                "GROUP BY area_name"
+            )
+            for row in cur.fetchall():
+                sale_counts[row[0]] = row[1]
+        except sqlite3.OperationalError:
+            pass
+        conn.close()
+
+    # Count rent listings per project (not per area, so just total)
+    rent_count = 0
+    rent_projects = set()
+    if Path(rent_cache_db).exists():
+        conn = sqlite3.connect(rent_cache_db)
+        try:
+            cur = conn.execute("SELECT COUNT(*) FROM rent_project_listings")
+            rent_count = cur.fetchone()[0]
+            cur = conn.execute(
+                "SELECT DISTINCT project_name FROM rent_cache WHERE bedrooms = -1"
+            )
+            rent_projects = {r[0] for r in cur.fetchall()}
+        except sqlite3.OperationalError:
+            pass
+        conn.close()
+
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    output_path = OUTPUT_DIR / "area_progress.csv"
+
+    fieldnames = [
+        "area_name", "state", "district_code", "listing_count",
+        "completed", "progress", "scraped_at",
+    ]
+
+    rows = []
+    for state, areas in cities.items():
+        for area in areas:
+            dc = district_cache.get(area, {}).get("code", "") or ""
+            ss = scrape_state.get(area, {})
+            completed = ss.get("completed", False)
+            last_page = ss.get("last_page", 0)
+            total_pages = ss.get("total_pages", 0)
+            scraped_at = ss.get("scraped_at", "")
+            if total_pages > 0:
+                progress = f"{last_page}/{total_pages}"
+            else:
+                progress = "" if not completed else "done"
+            rows.append({
+                "area_name": area,
+                "state": state,
+                "district_code": dc if dc else "(keyword)",
+                "listing_count": sale_counts.get(area, 0),
+                "completed": "yes" if completed else "no",
+                "progress": progress,
+                "scraped_at": scraped_at or "",
+            })
+
+    with open(output_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(rows)
+
+    log.info(f"Wrote {len(rows)} areas to {output_path}")
+    log.info(f"  Total sale listings: {sum(sale_counts.values()):,}")
+    log.info(f"  Total rent listings: {rent_count:,}")
+    log.info(f"  Projects with rent data: {len(rent_projects)}")
+
+
 def print_summary(all_results: list[dict], shortlist: list[dict]):
     """Print a human-readable summary to stdout."""
     print(f"\n{'=' * 70}")
@@ -869,8 +976,16 @@ def run_scraper(resume: bool = False, dry_run: bool = False,
     cities = load_cities()
     area_count = 0
 
-    # Count total areas for progress bar
-    total_areas = sum(len(areas) for areas in cities.values())
+    # Count total areas for progress bar (only non-completed if resuming)
+    if resume:
+        total_areas = sum(
+            1 for state, areas in cities.items()
+            for a in areas
+            if not (get_scrape_state(str(STATE_DB), a) and
+                    get_scrape_state(str(STATE_DB), a)["completed"])
+        )
+    else:
+        total_areas = sum(len(areas) for areas in cities.values())
     if max_areas:
         total_areas = min(total_areas, max_areas)
 
@@ -896,6 +1011,22 @@ def run_scraper(resume: bool = False, dry_run: bool = False,
             if resume and state_info and state_info["completed"]:
                 log.info(f"Skipping completed area: {area_name}")
                 continue
+
+            # Validate: if district_code returns 0 on page 1 slow+cheap, revert to keyword
+            if district_code:
+                test_url = build_sale_url(district_code, area_name, 1, config)
+                try:
+                    r = scraper.get(test_url, timeout=15)
+                    if "__NEXT_DATA__" in r.text:
+                        _m = re.search(r'<script id="__NEXT_DATA__"[^>]*type="application/json"[^>]*>(.*?)</script>', r.text, re.DOTALL)
+                        if _m:
+                            _d = json.loads(_m.group(1))
+                            _rc = _d.get("props",{}).get("pageProps",{}).get("pageData",{}).get("resultCount",0)
+                            if _rc == 0:
+                                log.warning(f"District code {district_code} for {area_name} returned 0 listings — treating as keyword fallback")
+                                district_code = None
+                except Exception:
+                    pass
 
             phase_pbar.set_postfix_str(area_name[:30], refresh=False)
             count = scrape_sale_area(
@@ -942,6 +1073,9 @@ def run_scraper(resume: bool = False, dry_run: bool = False,
 
     # Print summary
     print_summary(all_results, shortlist)
+
+    # Write area progress CSV
+    write_area_progress_csv(str(STATE_DB), str(RENT_CACHE_DB), str(CITIES_FILE), str(DISTRICT_CACHE))
 
     log.info("✅ Scraper run complete!")
 
