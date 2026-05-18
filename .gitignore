@@ -1,0 +1,8 @@
+*.pyc
+__pycache__/
+.DS_Store
+.env
+scrape_state.db
+rent_cache.db
+district_cache.yaml
+output/
