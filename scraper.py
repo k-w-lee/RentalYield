@@ -812,7 +812,8 @@ def print_summary(all_results: list[dict], shortlist: list[dict]):
 # ── Main Entry Point ────────────────────────────────────────────────────────
 
 def run_scraper(resume: bool = False, dry_run: bool = False,
-                max_areas: int | None = None, proxy_url: str | None = None):
+                max_areas: int | None = None, proxy_url: str | None = None,
+                target_area: str | None = None):
     """Run the full scraper pipeline."""
     config = load_config()
 
@@ -880,6 +881,11 @@ def run_scraper(resume: bool = False, dry_run: bool = False,
         for area_name in areas:
             if max_areas and area_count >= max_areas:
                 break
+
+            # Filter by target area if specified
+            if target_area and area_name.lower() != target_area.lower() and \
+               target_area.lower() not in area_name.lower():
+                continue
 
             # Get district code
             area_info = district_cache.get(area_name, {})
@@ -952,6 +958,8 @@ def main():
                         help="Limit number of areas to scrape (for testing)")
     parser.add_argument("--proxy", type=str, default=None,
                         help="HTTP/HTTPS proxy URL")
+    parser.add_argument("--area", type=str, default=None,
+                        help="Scrape only a specific area (e.g. 'Bangsar')")
     parser.add_argument("--verbose", "-v", action="store_true",
                         help="Verbose logging")
 
@@ -970,6 +978,7 @@ def main():
             dry_run=args.dry_run,
             max_areas=args.max_areas,
             proxy_url=args.proxy,
+            target_area=args.area,
         )
     except KeyboardInterrupt:
         log.info("\nInterrupted by user")
