@@ -27,6 +27,7 @@ import sys
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
+from tqdm import tqdm
 
 import cloudscraper
 import yaml
@@ -431,12 +432,14 @@ def scrape_rent_for_projects(projects: list[dict], config: dict,
     delay = config.get("scraper", {}).get("request_delay_seconds", 2)
     rp.create_rent_cache_schema(db_path)
 
-    total = len(projects)
-    for i, proj in enumerate(projects):
+    rent_pbar = tqdm(projects, desc="Phase C", unit="proj", leave=True,
+                     bar_format="{desc}: {n_fmt}/{total_fmt} [{elapsed}<{remaining}]")
+
+    for proj in rent_pbar:
         project_name = proj["project_name"]
         district_code = proj.get("district_code", "")
 
-        log.info(f"Rent [{i + 1}/{total}]: {project_name}")
+        rent_pbar.set_postfix_str(project_name[:35], refresh=False)
 
         # Re-ensure schema (covers fresh DB after resume reset)
         rp.create_rent_cache_schema(db_path)
@@ -453,7 +456,6 @@ def scrape_rent_for_projects(projects: list[dict], config: dict,
             cached_count = 0
         conn.close()
         if cached_count > 0:
-            log.info(f"  Already cached ({cached_count} bedroom groups), skipping")
             continue
 
         try:
@@ -463,7 +465,6 @@ def scrape_rent_for_projects(projects: list[dict], config: dict,
             )
 
             medians = rp.calculate_median_rent(project_listings)
-            log.info(f"  Found {len(project_listings)} listings, {len(medians) - 2} bedroom groups")
 
             # Cache per-bedroom medians
             for bd_key, val in medians.items():
@@ -480,10 +481,12 @@ def scrape_rent_for_projects(projects: list[dict], config: dict,
                 rp.cache_rent(db_path, project_name, -1, proj_med, total_count)
 
         except Exception as e:
-            log.warning(f"  Failed to scrape rent for {project_name}: {e}")
+            log.warning(f"  Rent failed for {project_name}: {e}")
 
         # Small delay between projects
         time.sleep(delay)
+
+    rent_pbar.close()
 
 
 def get_psf_median(db_path: str, project_name: str) -> float | None:
@@ -821,6 +824,19 @@ def run_scraper(resume: bool = False, dry_run: bool = False,
     cities = load_cities()
     area_count = 0
 
+    # Count total areas for progress bar
+    total_areas = sum(
+        len([a for a in areas
+             if not (resume and get_scrape_state(str(STATE_DB), a) and
+                     get_scrape_state(str(STATE_DB), a)["completed"])])
+        for areas in cities.values()
+    )
+    if max_areas:
+        total_areas = min(total_areas, max_areas)
+
+    phase_pbar = tqdm(total=total_areas, desc="Phase B", unit="area", leave=True,
+                      bar_format="{desc}: {n_fmt}/{total_fmt} [{elapsed}<{remaining}]")
+
     for state, areas in cities.items():
         for area_name in areas:
             if max_areas and area_count >= max_areas:
@@ -836,16 +852,19 @@ def run_scraper(resume: bool = False, dry_run: bool = False,
                 log.info(f"Skipping completed area: {area_name}")
                 continue
 
-            log.info(f"Scraping sale: {area_name} ({state}) code={district_code}")
+            phase_pbar.set_postfix_str(area_name[:30], refresh=False)
             count = scrape_sale_area(
                 area_name, state, district_code, config, scraper,
                 str(STATE_DB), resume=resume,
             )
             log.info(f"  {area_name}: {count} listings scraped")
+            phase_pbar.update(1)
             area_count += 1
 
         if max_areas and area_count >= max_areas:
             break
+
+    phase_pbar.close()
 
     # ── Phase C: Scrape rent listings ──────────────────────────────────
     log.info("Phase C: Scraping rent listings...")
@@ -854,8 +873,12 @@ def run_scraper(resume: bool = False, dry_run: bool = False,
     scrape_rent_for_projects(projects, config, scraper)
 
     # ── Phase D + E: Calculate metrics, rank, output ───────────────────
-    log.info("Phase D/E: Calculating metrics and generating output...")
+    log.info("Phase D/E: Scoring and ranking...")
+    score_pbar = tqdm(total=1, desc="Scoring", unit="batch", leave=True,
+                      bar_format="{desc}: {elapsed}")
     all_results = calculate_all_metrics(str(RENT_CACHE_DB), str(STATE_DB), config)
+    score_pbar.update(1)
+    score_pbar.close()
     all_results = deduplicate_listings(all_results)
 
     # Sort by total_score descending
