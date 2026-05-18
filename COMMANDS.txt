@@ -1,0 +1,112 @@
+╔══════════════════════════════════════════════════════════════╗
+║                RentalYield Scraper — Commands               ║
+╚══════════════════════════════════════════════════════════════╝
+
+══════════════════════════════════════════════════════════════
+  QUICK START
+══════════════════════════════════════════════════════════════
+
+  1. First-time setup (install dependencies):
+       pip3 install cloudscraper beautifulsoup4 lxml requests pyyaml
+
+  2. Dry-run (discover districts only, no scraping):
+       python3 scraper.py --dry-run
+
+  3. Test with 1 area (Ampang — fastest):
+       python3 scraper.py --max-areas 1 --verbose
+
+  4. Test with 5 areas:
+       python3 scraper.py --max-areas 5
+
+  5. FULL run — all 58 coded areas + 89 keyword areas:
+       python3 scraper.py
+
+══════════════════════════════════════════════════════════════
+  ALL OPTIONS
+══════════════════════════════════════════════════════════════
+
+  python3 scraper.py [OPTIONS]
+
+  --max-areas N    Only scrape N areas (useful for testing)
+  --resume         Resume an interrupted run (skips completed areas)
+  --dry-run        Discover districts only; don't scrape
+  --proxy URL      Use a proxy (e.g. http://user:pass@host:port)
+  --verbose        Detailed debug logging
+  --help           Show full help
+
+══════════════════════════════════════════════════════════════
+  WHAT TO EXPECT
+══════════════════════════════════════════════════════════════
+
+  Phase A: District discovery    ~3-5 min (cached after first run)
+  Phase B: Sale scraping         50 min+ for all coded areas
+  Phase C: Rent scraping         20-40 min
+  Phase D: Scoring               10 seconds
+  Phase E: CSV output            2 seconds
+
+  Total for full run:            1-2 hours (with 2s request delay)
+
+══════════════════════════════════════════════════════════════
+  CHECKING RESULTS
+══════════════════════════════════════════════════════════════
+
+  Output files are in the output/ folder:
+    output/all_listings.csv     — All scored listings
+    output/top_shortlist.csv    — Top 20 ranked picks
+
+  Quick peek:
+    head -3 output/top_shortlist.csv | column -t -s','
+
+══════════════════════════════════════════════════════════════
+  RESUMING AFTER INTERRUPTION
+══════════════════════════════════════════════════════════════
+
+  If the scraper is killed mid-run:
+    python3 scraper.py --resume
+
+  This skips completed areas and continues where it left off.
+
+══════════════════════════════════════════════════════════════
+  USING A PROXY (OPTIONAL)
+══════════════════════════════════════════════════════════════
+
+  Via command line:
+    python3 scraper.py --proxy http://user:pass@host:port
+
+  Via .env file (copy .env.example to .env and edit):
+    PROXY_URL=http://user:pass@host:port
+
+══════════════════════════════════════════════════════════════
+  CUSTOMIZING
+══════════════════════════════════════════════════════════════
+
+  Edit config.yaml to change:
+    scraper.request_delay_seconds  — Delay between requests
+    scraper.min_price / max_price  — Price range
+    loan.*                          — Loan assumptions
+    costs.*                         — Cost assumptions
+    scoring.weights.*               — Scoring weight adjustments
+    scoring.mrt_manual_scores.*     — MRT scores per area
+
+══════════════════════════════════════════════════════════════
+  FILES & CACHES
+══════════════════════════════════════════════════════════════
+
+  district_cache.yaml    — Discovered district codes (persist)
+  scrape_state.db        — Per-area scrape progress (for resume)
+  rent_cache.db          — Cached rent data per project
+  output/                — Final CSV results
+
+  To force a full rescan, delete the cache files:
+    rm -f scrape_state.db rent_cache.db district_cache.yaml
+
+══════════════════════════════════════════════════════════════
+  VERIFYING DATA
+══════════════════════════════════════════════════════════════
+
+  1. Pick a listing from top_shortlist.csv — note the listing_id
+  2. Open the URL column in a browser
+  3. Cross-check: price, bedrooms, area, build year
+  4. Verify rent estimate by searching the project name on PG rent
+
+══════════════════════════════════════════════════════════════

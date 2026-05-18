@@ -7,6 +7,7 @@ scraper:
   max_top_year_rent: 2026
   request_delay_seconds: 2
   max_retries: 3
+  max_keyword_pages: 5          # cap for areas without district codes (keyword search)
 
 # User agents rotated per request
 user_agents:

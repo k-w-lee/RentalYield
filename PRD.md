@@ -1,7 +1,7 @@
 # PRD: PropertyGuru Rental Yield Scraper & Scoring System
 
-**Version:** 1.2
-**Date:** 2026-05-18
+**Version:** 1.3
+**Date:** 2026-05-18 — Implemented. See deliverables below.
 **Author:** [Your Name]
 
 ---
