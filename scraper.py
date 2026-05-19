@@ -317,7 +317,10 @@ def scrape_sale_page(url: str, scraper: cloudscraper.CloudScraper,
     """Scrape a single sale page. Returns (listings_raw, total_pages, current_page)."""
     for attempt in range(max_retries):
         try:
-            log.info(f"Sale page [attempt {attempt + 1}]: {url[:120]}...")
+            # Compact: show page number only, skip full URL (noise)
+            # tqdm already shows current area in Phase B
+            page_num = url.split("page=")[1].split("&")[0] if "page=" in url else "?"
+            log.info(f"  pg {page_num} [attempt {attempt + 1}]")
             r = scraper.get(url, timeout=30)
             if r.status_code != 200:
                 log.warning(f"HTTP {r.status_code}, retrying...")
@@ -369,11 +372,11 @@ def scrape_sale_area(area_name: str, state: str, district_code: str | None,
     page = start_page
     listings_count = 0
 
-    # For keyword-search areas (no district code), cap at reasonable pages
+    log.info(f"→ {area_name} [{state}] {district_code or '(kw)'}")
     # Keyword search returns fuzzy results across many areas
     max_pages = total_pages if total_pages > 0 else 999
     if not district_code:
-        log.info(f"  (keyword search — capping at {cfg.get('max_keyword_pages', 5)} max pages)")
+        log.info(f"  kw search (max {cfg.get('max_keyword_pages', 5)} pgs)")
         max_pages = min(max_pages, cfg.get('max_keyword_pages', 5))
 
     while True:
@@ -403,7 +406,8 @@ def scrape_sale_area(area_name: str, state: str, district_code: str | None,
 
         # Check if we've hit the last page or max pages
         if page >= max_pages:
-            log.info(f"Completed {area_name}: {listings_count} listings on {page}/{total_pages} pages")
+            dc_label = f" [{district_code}]" if district_code else ""
+            log.info(f"Completed {area_name}: {listings_count} listings on {page}/{total_pages} pages{dc_label}")
             upsert_scrape_state(db_path, area_name, "sale", True, page, total_pages)
             break
 
@@ -446,7 +450,7 @@ def scrape_rent_for_projects(projects: list[dict], config: dict,
         # Re-ensure schema (covers fresh DB after resume reset)
         rp.create_rent_cache_schema(db_path)
 
-        log.info(f"Rent: {project_name} {district_code or '(no code)'}")
+        log.debug(f"Rent: {project_name} {district_code or '(no code)'}")
 
         # Skip if already cached with data for any bedroom count
         conn = sqlite3.connect(db_path)
@@ -1009,7 +1013,7 @@ def run_scraper(resume: bool = False, dry_run: bool = False,
             # Check if already fully scraped
             state_info = get_scrape_state(str(STATE_DB), area_name)
             if resume and state_info and state_info["completed"]:
-                log.info(f"Skipping completed area: {area_name}")
+                log.debug(f"Skipping completed area: {area_name}")
                 continue
 
             # Validate: if district_code returns 0 on page 1 slow+cheap, revert to keyword

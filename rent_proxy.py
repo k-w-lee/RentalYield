@@ -177,14 +177,16 @@ def parse_listing_card(listing_entry: dict) -> dict | None:
 
 def scrape_rent_page(url: str, scraper: cloudscraper.CloudScraper, delay: float = 2.0) -> tuple[list[dict], int, int]:
     """Scrape a single rent page. Returns (listings, total_pages, current_page)."""
-    log.info(f"Fetching rent page: {url}")
+    pg = url.split("page=")[1].split("&")[0] if "page=" in url else "?"
+    dc = url.split("districtCode=")[1].split("&")[0] if "districtCode=" in url else ""
+    log.info(f"  rent pg {pg} [{dc or '*'}]")
     r = scraper.get(url, timeout=30)
     time.sleep(delay)
 
     soup = BeautifulSoup(r.text, "lxml")
     next_data = soup.find("script", id="__NEXT_DATA__")
     if not next_data or not next_data.string:
-        log.warning("No __NEXT_DATA__ found on rent page")
+        log.warning("  No __NEXT_DATA__ on rent page")
         return [], 0, 0
 
     data = json.loads(next_data.string)
