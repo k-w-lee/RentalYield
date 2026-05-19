@@ -1,0 +1,735 @@
+Ampang:
+  code: zbpv1
+  error: null
+  state: Selangor
+  tried: true
+Ara Damansara:
+  code: h1i2j
+  error: null
+  state: Selangor
+  tried: true
+Bagan Nakhoda Omar:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Balakong:
+  code: w1x2y
+  error: null
+  state: Selangor
+  tried: true
+Bandar Baru Bangi:
+  code: z3a4b
+  error: null
+  state: Selangor
+  tried: true
+Bandar Kinrara:
+  code: c5d6e
+  error: null
+  state: Selangor
+  tried: true
+Bandar Menjalara:
+  code: 4e6kw
+  error: null
+  state: Kuala_Lumpur
+  tried: true
+Bandar Sri Damansara:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Bandar Sungai Long:
+  code: f7g8h
+  error: null
+  state: Selangor
+  tried: true
+Bandar Tasik Selatan:
+  code: i9j0k
+  error: null
+  state: Kuala_Lumpur
+  tried: true
+Bandar Utama:
+  code: c4d5f
+  error: null
+  state: Selangor
+  tried: true
+Bangi:
+  code: g3h4i
+  error: null
+  state: Selangor
+  tried: true
+Bangsar:
+  code: n4dpg
+  error: null
+  state: Kuala_Lumpur
+  tried: true
+Banting:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Baru Hicom:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Batang Berjuntai:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Batang Kali:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Batu:
+  code: v9w0x
+  error: null
+  state: Kuala_Lumpur
+  tried: true
+Batu Arang:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Batu Caves:
+  code: a1b2c
+  error: null
+  state: Selangor
+  tried: true
+Beranang:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Bestari Jaya:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Brickfields:
+  code: null
+  error: skipped
+  state: Kuala_Lumpur
+  tried: true
+Bukit Beruntung:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Bukit Bisa:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Bukit Jalil:
+  code: ab8n2
+  error: null
+  state: Kuala_Lumpur
+  tried: true
+Bukit Kiara:
+  code: null
+  error: skipped
+  state: Kuala_Lumpur
+  tried: true
+Bukit Raja:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Bukit Tunku (Kenny Hills):
+  code: null
+  error: skipped
+  state: Kuala_Lumpur
+  tried: true
+Cheras:
+  code: qnm49
+  error: null
+  state: Selangor
+  tried: true
+Cyberjaya:
+  code: d1e2f
+  error: null
+  state: Selangor
+  tried: true
+Damansara Damai:
+  code: k8l9m
+  error: null
+  state: Selangor
+  tried: true
+Damansara Heights:
+  code: h7c3v
+  error: null
+  state: Kuala_Lumpur
+  tried: true
+Damansara Perdana:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Dengkil:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Desa Parkcity:
+  code: eqs5n
+  error: null
+  state: Kuala_Lumpur
+  tried: true
+Desa Petaling:
+  code: null
+  error: skipped
+  state: Kuala_Lumpur
+  tried: true
+Dusun Tua Ulu Langat:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Dutamas:
+  code: null
+  error: skipped
+  state: Kuala_Lumpur
+  tried: true
+Glenmarie:
+  code: e9f0g
+  error: null
+  state: Selangor
+  tried: true
+Gombak:
+  code: v3w4x
+  error: null
+  state: Selangor
+  tried: true
+Hulu Kelang:
+  code: null
+  error: skipped
+  state: Kuala_Lumpur
+  tried: true
+Hulu Langat:
+  code: y5z6a
+  error: null
+  state: Selangor
+  tried: true
+Hulu Semenyih:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Ijok:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Jalan Ipoh:
+  code: y7k2r
+  error: null
+  state: Kuala_Lumpur
+  tried: true
+Jalan Klang Lama (Old Klang Road):
+  code: null
+  error: skipped
+  state: Kuala_Lumpur
+  tried: true
+Jalan Kuching:
+  code: null
+  error: skipped
+  state: Kuala_Lumpur
+  tried: true
+Jenjarom:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Jeram:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Jinjang:
+  code: null
+  error: skipped
+  state: Kuala_Lumpur
+  tried: true
+Jugra:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+KL City Centre:
+  code: 6k2o1
+  error: null
+  state: Kuala_Lumpur
+  tried: true
+KL Eco City:
+  code: null
+  error: skipped
+  state: Kuala_Lumpur
+  tried: true
+Kacau:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Kajang:
+  code: x5y8z
+  error: null
+  state: Selangor
+  tried: true
+Kalumpang:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Kampung Baru Hulu Tiram Buruk:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Kampung Kerinchi (Bangsar South):
+  code: null
+  error: skipped
+  state: Kuala_Lumpur
+  tried: true
+Kapar:
+  code: n5o6p
+  error: null
+  state: Selangor
+  tried: true
+Kayu Ara:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Kelanang:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Kepong:
+  code: p5v7m
+  error: null
+  state: Selangor
+  tried: true
+Keramat:
+  code: null
+  error: skipped
+  state: Kuala_Lumpur
+  tried: true
+Kerling:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Kl Sentral:
+  code: t2m5n
+  error: null
+  state: Kuala_Lumpur
+  tried: true
+Klang:
+  code: w7r2t
+  error: null
+  state: Selangor
+  tried: true
+Kota Damansara:
+  code: g6h7j
+  error: null
+  state: Selangor
+  tried: true
+Kuala Kubu Baharu:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Kuala Kubu Baru:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Kuala Kubu Bharu:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Kuala Lumpur:
+  code: null
+  error: skipped
+  state: Kuala_Lumpur
+  tried: true
+Kuala Selangor:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Kuang:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Kuchai Lama:
+  code: b9n6m
+  error: null
+  state: Kuala_Lumpur
+  tried: true
+Labu:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Melawati:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Merbau Sempak:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Mid Valley City:
+  code: s3p9k
+  error: null
+  state: Kuala_Lumpur
+  tried: true
+Mont Kiara:
+  code: q9r6m
+  error: null
+  state: Kuala_Lumpur
+  tried: true
+Morib:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Mutiara Damansara:
+  code: n1p2q
+  error: null
+  state: Selangor
+  tried: true
+Pandan Indah:
+  code: t9u0v
+  error: null
+  state: Selangor
+  tried: true
+Pantai:
+  code: null
+  error: skipped
+  state: Kuala_Lumpur
+  tried: true
+Pasangan:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Pasir Panjang:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Pelabuhan Klang:
+  code: q7r8s
+  error: null
+  state: Selangor
+  tried: true
+Peretak:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Petaling Jaya:
+  code: f5d2k
+  error: null
+  state: Selangor
+  tried: true
+Port Klang (Pelabuhan Klang):
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Puchong:
+  code: m8v4p
+  error: null
+  state: Selangor
+  tried: true
+Puchong Perdana:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Pulau Carey:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Pulau Carey (Carey Island):
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Puncak Alam:
+  code: a9b0c
+  error: null
+  state: Selangor
+  tried: true
+Rasa:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Rawang:
+  code: p9q0r
+  error: null
+  state: Selangor
+  tried: true
+Sabak Bernam:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Salak Selatan:
+  code: null
+  error: skipped
+  state: Kuala_Lumpur
+  tried: true
+Salak South:
+  code: r2t7y
+  error: null
+  state: Kuala_Lumpur
+  tried: true
+Saujana:
+  code: b7c8d
+  error: null
+  state: Selangor
+  tried: true
+Saujana Utama:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Segambut:
+  code: null
+  error: skipped
+  state: Kuala_Lumpur
+  tried: true
+Sekinchan:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Selayang:
+  code: s1t2u
+  error: null
+  state: Selangor
+  tried: true
+Semenyih:
+  code: m7n8o
+  error: null
+  state: Selangor
+  tried: true
+Sentul:
+  code: x7y4z
+  error: null
+  state: Selangor
+  tried: true
+Sepang:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Seputeh:
+  code: u9i1o
+  error: null
+  state: Kuala_Lumpur
+  tried: true
+Serendah:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Seri Kembangan:
+  code: j5k6l
+  error: null
+  state: Selangor
+  tried: true
+Setapak:
+  code: j3m8x
+  error: null
+  state: Kuala_Lumpur
+  tried: true
+Setia Alam:
+  code: x7y8z
+  error: null
+  state: Selangor
+  tried: true
+Setiawangsa:
+  code: p5q6r
+  error: null
+  state: Kuala_Lumpur
+  tried: true
+Shah Alam:
+  code: l3n9q
+  error: null
+  state: Selangor
+  tried: true
+Simpang Tiga:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Sri Hartamas:
+  code: v8n4b
+  error: null
+  state: Kuala_Lumpur
+  tried: true
+Sri Petaling:
+  code: q4w8e
+  error: null
+  state: Kuala_Lumpur
+  tried: true
+Subang:
+  code: k3l4m
+  error: null
+  state: Selangor
+  tried: true
+Subang Jaya:
+  code: o9c69
+  error: null
+  state: Selangor
+  tried: true
+Sungai Air Tawar:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Sungai Besar:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Sungai Besi:
+  code: null
+  error: skipped
+  state: Kuala_Lumpur
+  tried: true
+Sungai Buloh:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Sungai Gumut:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Sungai Panjang:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Sungai Pelek:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Sungai Penchala:
+  code: null
+  error: skipped
+  state: Kuala_Lumpur
+  tried: true
+Sunway:
+  code: u5v6w
+  error: null
+  state: Selangor
+  tried: true
+Sunway Spk:
+  code: null
+  error: skipped
+  state: Kuala_Lumpur
+  tried: true
+Taman Desa:
+  code: null
+  error: skipped
+  state: Kuala_Lumpur
+  tried: true
+Taman Tun Dr Ismail:
+  code: r9g6w
+  error: null
+  state: Kuala_Lumpur
+  tried: true
+Tanjong Duabelas:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Tanjong Karang:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Tanjong Sepat:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Tanjung Karang:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Telok Panglima Garang:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Titiwangsa:
+  code: s7t8u
+  error: null
+  state: Kuala_Lumpur
+  tried: true
+Tropicana:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Ujong Permatang:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Ulu Bernam:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Ulu Kelang:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Ulu Langat:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Ulu Semenyih:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Ulu Tinggi:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Ulu Yam:
+  code: null
+  error: skipped
+  state: Selangor
+  tried: true
+Wangsa Maju:
+  code: h2k9p
+  error: null
+  state: Kuala_Lumpur
+  tried: true

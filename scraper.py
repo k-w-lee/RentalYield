@@ -930,29 +930,18 @@ def run_scraper(resume: bool = False, dry_run: bool = False,
         log.info(f"Using proxy: {proxy_url}")
         scraper.proxies = {"http": proxy_url, "https": proxy_url}
 
-    # Don't rediscover if cache exists and we're resuming
-    # Use skip_discovery=True to avoid HTTP requests for unknown areas
-    if not DISTRICT_CACHE.exists() and not resume:
-        log.info("No district cache — creating from seeds (skip_discovery=True)")
-        dd.discover_all_districts(
-            str(CITIES_FILE),
-            str(DISTRICT_CACHE),
-            scraper,
-            delay=config.get("scraper", {}).get("request_delay_seconds", 1),
-            resume=True,
-            skip_discovery=True,
-        )
-    else:
-        log.info("Using existing district cache")
-        # Still refresh cache to ensure all seeded codes are present
-        dd.discover_all_districts(
-            str(CITIES_FILE),
-            str(DISTRICT_CACHE),
-            scraper,
-            delay=config.get("scraper", {}).get("request_delay_seconds", 1),
-            resume=True,
-            skip_discovery=True,
-        )
+    # Always do live extraction of district codes from generic search pages.
+    # PG rotates these codes — don't rely on stale cache.
+    log.info("Phase A: Extracting live district codes from search pages...")
+    dd.discover_all_districts(
+        str(CITIES_FILE),
+        str(DISTRICT_CACHE),
+        scraper,
+        delay=config.get("scraper", {}).get("request_delay_seconds", 1),
+        resume=True,
+        skip_discovery=False,
+        pages_to_scrape=20,
+    )
 
     district_cache = load_district_cache()
 
