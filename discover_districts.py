@@ -240,9 +240,11 @@ def discover_district_code(
             log.info(f"  '{area_name}': {code}")
             return code
 
-    # Fallback: keyword search + check if PG resolves (works for well-known areas)
+    # Fallback: keyword search → extract majority district from result listings
+    # This catches areas that don't match PG district names but whose listings
+    # all fall under one district (e.g. Kepong listings are under a larger district)
     url = build_search_url(area_name, district_code=None)
-    log.debug(f"  Keyword fallback for '{area_name}'")
+    log.debug(f"  Keyword fallback '{area_name}'")
 
     try:
         r = scraper.get(url, timeout=30, allow_redirects=True)
@@ -259,6 +261,8 @@ def discover_district_code(
         nd = soup.find("script", id="__NEXT_DATA__")
         if nd and nd.string:
             data = json.loads(nd.string)
+            
+            # Method A: Check if PG auto-resolved (works for well-known districts)
             saved = (
                 data.get("props", {})
                 .get("pageProps", {})
@@ -274,6 +278,42 @@ def discover_district_code(
             if dc and isinstance(dc, str):
                 log.info(f"  '{area_name}': {dc} (keyword-resolved)")
                 return dc
+
+            # Method B: Extract majority district from page listings
+            listings = (
+                data.get("props", {})
+                .get("pageProps", {})
+                .get("pageData", {})
+                .get("data", {})
+                .get("listingsData", [])
+            )
+            if listings:
+                district_counts: dict[str, int] = {}
+                district_codes: dict[str, str] = {}
+                for listing in listings:
+                    addl = listing.get("listingData", {}).get("additionalData", {})
+                    dc2 = addl.get("districtCode", "")
+                    dt2 = addl.get("districtText", "")
+                    if dc2 and dt2:
+                        dt2_clean = dt2.strip()
+                        district_counts[dt2_clean] = district_counts.get(dt2_clean, 0) + 1
+                        if dt2_clean not in district_codes:
+                            district_codes[dt2_clean] = dc2
+
+                if district_counts:
+                    # Check if majority of results fall under one district
+                    total = sum(district_counts.values())
+                    best = max(district_counts, key=district_counts.get)
+                    best_count = district_counts[best]
+                    best_pct = best_count / total * 100
+
+                    if best_pct >= 50:
+                        log.info(f"  '{area_name}': {district_codes[best]} ({best}) "
+                                 f"({best_count}/{total}, {best_pct:.0f}% consensus)")
+                        return district_codes[best]
+                    else:
+                        log.debug(f"  '{area_name}': no majority district "
+                                 f"(top: {best} {best_pct:.0f}% of {total} listings)")
     except Exception as e:
         log.debug(f"  Parse error: {e}")
 
@@ -324,6 +364,7 @@ def discover_all_districts(
         cities = json.load(f)
 
     results: dict[str, dict] = {}
+    unmatched: list[tuple[str, str]] = []  # (state, area)
 
     for state, areas in cities.items():
         for area in areas:
@@ -341,9 +382,29 @@ def discover_all_districts(
                 log.debug(f"  '{area}': {code}")
                 continue
 
-            # No district match — mark as keyword fallback
-            results[area] = {"state": state, "code": None, "error": "keyword_fallback", "tried": True}
-            log.debug(f"  '{area}': keyword fallback (no district match)")
+            # Defer to fallback phase
+            unmatched.append((state, area))
+
+    # ── Phase 3: Targeted fallback for unmatched areas ─────────────────
+    if unmatched and not skip_discovery:
+        log.info(f"Phase 3: Targeted fallback for {len(unmatched)} unmatched areas...")
+        for state, area in unmatched:
+            code = discover_district_code(area, scraper, delay, district_map)
+            results[area] = {
+                "state": state,
+                "code": code,
+                "error": None if code else "keyword_fallback",
+                "tried": True,
+            }
+    elif unmatched:
+        log.info(f"Phase 3: {len(unmatched)} unmatched areas → keyword fallback (skip_discovery)")
+        for state, area in unmatched:
+            results[area] = {
+                "state": state,
+                "code": None,
+                "error": "keyword_fallback",
+                "tried": True,
+            }
 
     # Save cache
     with open(cache_file, "w") as f:
