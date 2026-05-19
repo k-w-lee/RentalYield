@@ -245,18 +245,16 @@ def discover_all_districts(
 
     for state, areas in cities.items():
         for area in areas:
-            # Check cache first
+            # Check cache first (valid entries with codes)
             cached = existing.get(area)
             if resume and cached and isinstance(cached, dict):
                 if cached.get("code") and not cached.get("error"):
                     log.debug(f"  Cached '{area}': {cached['code']}")
                     results[area] = cached
                     continue
-                if cached.get("tried") and not cached.get("code"):
-                    results[area] = cached
-                    continue
 
-            # Try pre-seeded
+            # Try pre-seeded — check BEFORE accepting a previously-failed cache entry
+            # (fixes stale_code / keyword_fallback areas that have known seeds)
             code = SEEDED_CODES.get(area.lower().strip())
             if code:
                 log.info(f"  Seeded '{area}': {code}")

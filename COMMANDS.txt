@@ -13,7 +13,7 @@
        python3 scraper.py --dry-run
 
   3. Test with 1 area (Ampang — fastest):
-       python3 scraper.py --max-areas 1 --verbose
+       python3 scraper.py --max-areas 1 --resume
 
   4. Test with 5 areas:
        python3 scraper.py --max-areas 5
