@@ -45,7 +45,6 @@ log = logging.getLogger(__name__)
 PROJECT_ROOT = Path(__file__).parent
 CITIES_FILE = PROJECT_ROOT / "cities.json"
 CONFIG_FILE = PROJECT_ROOT / "config.yaml"
-DISTRICT_CACHE = PROJECT_ROOT / "district_cache.yaml"
 STATE_DB = PROJECT_ROOT / "scrape_state.db"
 RENT_CACHE_DB = PROJECT_ROOT / "rent_cache.db"
 OUTPUT_DIR = PROJECT_ROOT / "output"
@@ -188,10 +187,7 @@ def load_cities() -> dict:
 
 
 def load_district_cache() -> dict:
-    """Load district_cache.yaml, return empty dict if missing."""
-    if DISTRICT_CACHE.exists():
-        with open(DISTRICT_CACHE) as f:
-            return yaml.safe_load(f) or {}
+    """No district cache — codes discovered live by discover_all_districts()."""
     return {}
 
 
@@ -930,16 +926,13 @@ def run_scraper(resume: bool = False, dry_run: bool = False,
         log.info(f"Using proxy: {proxy_url}")
         scraper.proxies = {"http": proxy_url, "https": proxy_url}
 
-    # Always do live extraction of district codes from generic search pages.
-    # PG rotates these codes — don't rely on stale cache.
+    # Extract district codes live from generic search pages.
+    # PG rotates codes — always discover fresh.
     log.info("Phase A: Extracting live district codes from search pages...")
     dd.discover_all_districts(
         str(CITIES_FILE),
-        str(DISTRICT_CACHE),
         scraper,
         delay=config.get("scraper", {}).get("request_delay_seconds", 1),
-        resume=True,
-        skip_discovery=False,
         pages_to_scrape=20,
     )
 
@@ -1061,7 +1054,7 @@ def run_scraper(resume: bool = False, dry_run: bool = False,
     print_summary(all_results, shortlist)
 
     # Write area progress CSV
-    write_area_progress_csv(str(STATE_DB), str(RENT_CACHE_DB), str(CITIES_FILE), str(DISTRICT_CACHE))
+    write_area_progress_csv(str(STATE_DB), str(RENT_CACHE_DB), str(CITIES_FILE), '')
 
     log.info("✅ Scraper run complete!")
 

@@ -14,12 +14,7 @@ if __name__ == "__main__":
 
     root = Path(__file__).parent
     s = cloudscraper.create_scraper()
-    r = discover_all_districts(
-        str(root / "cities.json"),
-        str(root / "district_cache.yaml"),
-        s,
-        skip_discovery=False,
-    )
+    r = discover_all_districts(str(root / "cities.json"), s)
 
     found = {k: v["code"] for k, v in r.items() if isinstance(v, dict) and v.get("code")}
     failed = {k: v for k, v in r.items() if isinstance(v, dict) and not v.get("code")}

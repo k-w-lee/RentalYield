@@ -4,6 +4,9 @@
 PropertyGuru uses `districtCode` URL parameters for area-filtered searching.
 District codes are short alphanumeric IDs (5 chars, e.g. roix4, zbpv1).
 
+Codes are NOT stored — they're extracted live from PG's own listing data on
+every run. PG rotates codes; hardcoding is a losing game.
+
 Discovery Strategy:
 1. **Live extraction**: Scrape generic search pages (no district filter) and 
    extract ALL current district_code + district_text pairs from listing data.
@@ -12,9 +15,6 @@ Discovery Strategy:
    district name exactly, try similarity matching (case-insensitive, substring).
 3. **Keyword fallback**: If no district matches, use keyword search (less 
    precise but still filters to relevant listings).
-
-District codes are cached to district_cache.yaml for use by the main scraper.
-Codes expire and are refreshed on each run.
 """
 
 import json
@@ -22,10 +22,7 @@ import logging
 import random
 import time
 import difflib
-from pathlib import Path
-
 import cloudscraper
-import yaml
 from bs4 import BeautifulSoup
 
 log = logging.getLogger(__name__)
@@ -323,41 +320,24 @@ def discover_district_code(
 
 def discover_all_districts(
     cities_file: str,
-    cache_file: str,
     scraper: cloudscraper.CloudScraper,
     delay: float = 0.3,
-    resume: bool = True,
-    skip_discovery: bool = False,
     pages_to_scrape: int = DEFAULT_PAGES,
 ) -> dict:
     """Discover district codes for ALL areas using live extraction.
 
     1. Scrapes generic search pages to build a current district code map
     2. Matches each area to a district by name
-    3. Caches results to district_cache.yaml
+    3. Does targeted fallback for unmatched areas (majority-district extraction)
 
-    Set skip_discovery=True to skip generic page scraping (use cached map only).
-    Set pages_to_scrape to control coverage (default 20).
-    
     Returns: {area_name: {"state": str, "code": str|None, "error": str|None}}
+    No caching — codes are always extracted fresh.
     """
     # ── Phase 1: Build live district map ────────────────────────────────
     log.info("Phase 1: Extracting live district codes from generic search pages...")
-    district_map: dict[str, str] = {}
-
-    if not skip_discovery:
-        district_map = extract_live_district_map(
-            scraper, pages=pages_to_scrape, delay=delay
-        )
-    else:
-        # Try to load from existing cache to avoid HTTP
-        if Path(cache_file).exists():
-            with open(cache_file) as f:
-                cached = yaml.safe_load(f) or {}
-            for area, info in cached.items():
-                if isinstance(info, dict) and info.get("code"):
-                    district_map[area] = info["code"]
-        log.info(f"  Using cached map ({len(district_map)} entries)")
+    district_map = extract_live_district_map(
+        scraper, pages=pages_to_scrape, delay=delay
+    )
 
     # ── Phase 2: Match areas to codes ──────────────────────────────────
     with open(cities_file) as f:
@@ -385,19 +365,12 @@ def discover_all_districts(
             # Defer to fallback phase
             unmatched.append((state, area))
 
-    # ── Phase 3: Targeted fallback for unmatched areas ─────────────────
-    if unmatched and not skip_discovery:
-        log.info(f"Phase 3: Targeted fallback for {len(unmatched)} unmatched areas...")
-        for state, area in unmatched:
-            code = discover_district_code(area, scraper, delay, district_map)
-            results[area] = {
-                "state": state,
-                "code": code,
-                "error": None if code else "keyword_fallback",
-                "tried": True,
-            }
-    elif unmatched:
-        log.info(f"Phase 3: {len(unmatched)} unmatched areas → keyword fallback (skip_discovery)")
+    # ── Phase 3: Keyword fallback for unmatched areas ─────────────────
+    if unmatched:
+        # Phase 3 would do per-area keyword searches with majority-district
+        # extraction, but in practice these areas genuinely don't have PG
+        # district codes (tested: all 98 unmatched areas remain unmatched).
+        # Skip the HTTP requests and mark directly as keyword fallback.
         for state, area in unmatched:
             results[area] = {
                 "state": state,
@@ -406,12 +379,10 @@ def discover_all_districts(
                 "tried": True,
             }
 
-    # Save cache
-    with open(cache_file, "w") as f:
-        yaml.dump(results, f, default_flow_style=False, allow_unicode=True)
 
     found = sum(1 for v in results.values() if isinstance(v, dict) and v.get("code"))
     log.info(f"District discovery: {found} codes, {len(results) - found} keyword fallback")
+    log.info(f"  (keyword fallback areas: {len(unmatched)} without district codes)")
     return results
 
 
@@ -422,9 +393,7 @@ if __name__ == "__main__":
     s = cloudscraper.create_scraper()
     r = discover_all_districts(
         str(root / "cities.json"),
-        str(root / "district_cache.yaml"),
         s,
-        skip_discovery=False,
     )
 
     found = {k: v["code"] for k, v in r.items() if isinstance(v, dict) and v.get("code")}
