@@ -858,8 +858,8 @@ def write_area_progress_csv(state_db: str, rent_cache_db: str,
     output_path = OUTPUT_DIR / "area_progress.csv"
 
     fieldnames = [
-        "area_name", "state", "district_code", "listing_count",
-        "completed", "progress", "scraped_at",
+        "area_name", "state", "district_code", "qualified_sale_listings",
+        "completed", "scraped_at",
     ]
 
     rows = []
@@ -868,20 +868,13 @@ def write_area_progress_csv(state_db: str, rent_cache_db: str,
             dc = district_cache.get(area, {}).get("code", "") or ""
             ss = scrape_state.get(area, {})
             completed = ss.get("completed", False)
-            last_page = ss.get("last_page", 0)
-            total_pages = ss.get("total_pages", 0)
             scraped_at = ss.get("scraped_at", "")
-            if total_pages > 0:
-                progress = f"{last_page}/{total_pages}"
-            else:
-                progress = "" if not completed else "done"
             rows.append({
                 "area_name": area,
                 "state": state,
                 "district_code": dc if dc else "(keyword)",
-                "listing_count": sale_counts.get(area, 0),
+                "qualified_sale_listings": sale_counts.get(area, 0),
                 "completed": "yes" if completed else "no",
-                "progress": progress,
                 "scraped_at": scraped_at or "",
             })
 
