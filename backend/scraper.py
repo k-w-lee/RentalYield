@@ -8,12 +8,14 @@ Pipeline:
   D. Join sale + rent, run loan/score calculations
   E. Dedup, rank, write CSV output
 
-Usage:
+Usage (from backend/ directory):
     python3 scraper.py                     # Full run
     python3 scraper.py --resume            # Resume incomplete scrape
     python3 scraper.py --dry-run           # Discover + preview only
     python3 scraper.py --max-areas 5       # Limit areas for testing
     python3 scraper.py --proxy http://...  # Use proxy
+
+    (Or with full path: python3 path/to/backend/scraper.py)
 """
 
 import argparse
@@ -42,9 +44,10 @@ import score as score_mod
 log = logging.getLogger(__name__)
 
 # ── Paths ──────────────────────────────────────────────────────────────────
-PROJECT_ROOT = Path(__file__).parent
-CITIES_FILE = PROJECT_ROOT / "cities.json"
-CONFIG_FILE = PROJECT_ROOT / "config.yaml"
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+BACKEND_DIR = PROJECT_ROOT / "backend"
+CITIES_FILE = BACKEND_DIR / "cities.json"
+CONFIG_FILE = BACKEND_DIR / "config.yaml"
 STATE_DB = PROJECT_ROOT / "scrape_state.db"
 RENT_CACHE_DB = PROJECT_ROOT / "rent_cache.db"
 OUTPUT_DIR = PROJECT_ROOT / "output"

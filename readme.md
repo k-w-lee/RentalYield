@@ -5,40 +5,44 @@ A data-driven shortlisting tool for property investors. Scrapes sale and rent li
 ## Pipeline
 
 ```
-cities.json ─────────┐
-                     ▼
-          discover_districts.py ──── live district extraction
-          (generic search pages)     (no cache file)
-                                                  │
-                  config.yaml ──► scraper.py ◄────┘
-                                     │
-                  ┌────────────────────┼────────────────────┐
-                  ▼                    ▼                    ▼
-     sale_listings.db           rent_proxy.py         scrape_state.db
-     (sale_listings table)      (per-project rent)    (resume state)
-                  │                    │
-                  └──────────┬─────────┘
-                             ▼
-                   join by project+bedroom
-                             │
-                    ┌────────┴────────┐
-                    ▼                 ▼
-               loan.py           score.py
-                    │                 │
-                    └────────┬────────┘
-                             ▼
-              ┌──────────────┼──────────────┐
-              ▼              ▼              ▼
-     all_sales_listings  all_rentals     top_shortlist
-     .csv                _listings.csv   .csv
-     
-area_progress.csv (per-area status)
-terminal summary (top 10)
+                    backend/
+                        │
+                    cities.json ─────────┐
+                                         ▼
+                  discover_districts.py ──── live district extraction
+                  (generic search pages)     (no cache file)
+                                                      │
+                      config.yaml ──► scraper.py ◄────┘
+                                         │
+                      ┌────────────────────┼────────────────────┐
+                      ▼                    ▼                    ▼
+         sale_listings.db           rent_proxy.py         scrape_state.db
+         (sale_listings table)      (per-project rent)    (resume state)
+                      │                    │
+                      └──────────┬─────────┘
+                                 ▼
+                       join by project+bedroom
+                                 │
+                        ┌────────┴────────┐
+                        ▼                 ▼
+                   loan.py           score.py
+                        │                 │
+                        └────────┬────────┘
+                                 ▼
+                  ┌──────────────┼──────────────┐
+                  ▼              ▼              ▼
+         all_sales_listings  all_rentals     top_shortlist
+         .csv                _listings.csv   .csv
+
+    area_progress.csv (per-area status)
+    terminal summary (top 10)
 ```
 
 ## Quick Start
 
 ```bash
+cd backend
+
 pip install cloudscraper beautifulsoup4 lxml pyyaml
 
 # Full run: discover districts, scrape sales + rent, score, output
@@ -65,6 +69,47 @@ python3 scraper.py --verbose
 
 If you get `no module named 'lxml'`, install via `pip install lxml` or the scraper will fall back to Python's built-in HTML parser.
 
+## Project Structure
+
+```
+RentalYield/
+├── PRD.md
+├── readme.md
+├── output/                    ← Scraped CSV results
+│   ├── all_sales_listings.csv
+│   ├── all_rentals_listings.csv
+│   ├── top_shortlist.csv
+│   └── area_progress.csv
+├── scrape_state.db            ← Scrape resume state
+├── rent_cache.db              ← Cached rent data
+├── backend/
+│   ├── scraper.py             ← Main entry point
+│   ├── discover_districts.py  ← Live district code discovery
+│   ├── discover_all_codes.py  ← Bulk code discovery helper
+│   ├── discover_missing.py    ← Missing-area investigation
+│   ├── rent_proxy.py          ← Rent scraper & median calculator
+│   ├── loan.py                ← Amortisation & cash flow
+│   ├── score.py               ← 7-component scoring engine
+│   ├── save_cache.py          ← Cache utility
+│   ├── config.yaml            ← All tunable parameters
+│   ├── cities.json            ← KL & Selangor area definitions
+│   ├── district_cache.yaml
+│   ├── resources/
+│   │   └── context.md
+│   ├── .env.example
+│   ├── .gitignore
+│   ├── COMMANDS.txt
+│   └── _debug.md
+└── resources/
+```
+
+Run all commands from the `backend/` directory:
+
+```bash
+cd backend
+python3 scraper.py [options]
+```
+
 ## Output Files
 
 | File | Description |
@@ -86,25 +131,9 @@ If you get `no module named 'lxml'`, install via `pip install lxml` or the scrap
 | `--proxy URL` | — | HTTP/HTTPS proxy for all requests |
 | `--verbose` / `-v` | off | Debug-level logging |
 
-## Files
-
-| File | Purpose |
-|---|---|
-| `scraper.py` | Main entry point — orchestrates full pipeline (Phase A–E) |
-| `discover_districts.py` | Live district code discovery from generic PG search pages |
-| `discover_all_codes.py` | Bulk code discovery helper script |
-| `discover_missing.py` | Script for investigating unmatched/fallback areas |
-| `rent_proxy.py` | Scrapes rent listings, groups by project+bedroom, calculates median rent |
-| `loan.py` | Amortisation formula, net monthly cash flow, gross/net yield |
-| `score.py` | 7-component scoring engine with linear normalisation |
-| `config.yaml` | All tunable parameters (scraper, loan, costs, scoring weights) |
-| `cities.json` | KL & Selangor area definitions |
-| `save_cache.py` | Cache utility |
-| `PRD.md` | Full product requirements document |
-
 ## Configuration
 
-Edit `config.yaml` to tune:
+Edit `backend/config.yaml` to tune:
 
 - **Price range** — `min_price`, `max_price` (RM 100k–1M default)
 - **Build year** — `min_top_year_sale`, `max_top_year_sale`, `min_top_year_rent`

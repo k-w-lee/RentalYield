@@ -412,19 +412,22 @@ All values admin-changeable — no code changes needed.
 
 | # | File | Purpose |
 |---|---|---|
-| 1 | `discover_districts.py` | Live district code discovery from generic search pages |
-| 2 | `scraper.py` | Main entry point — orchestrates sale + rent scraping |
-| 3 | `rent_proxy.py` | Scrapes rent listings, groups by project+bedroom, calculates median |
-| 4 | `loan.py` | Amortisation formula → monthly repayment |
-| 5 | `score.py` | Scoring engine (7 components, normalisation, weighted sum) |
-| 6 | `config.yaml` | All tunable parameters |
-| 7 | `rent_cache.db` | Auto-created SQLite — cached rent data per project |
-| 8 | `scrape_state.db` | Auto-created SQLite — resume state |
-| 9 | `output/all_sales_listings.csv` | Full scraped dataset with all sale metrics + rent estimates |
-| 10 | `output/all_rentals_listings.csv` | Raw rent listing data for traceback |
-| 11 | `output/top_shortlist.csv` | Ranked shortlist (top 20) |
-| 12 | `output/area_progress.csv` | Per-area scrape status, listing counts |
-| 13 | `README.md` | Setup & usage instructions |
+| # | Location | File | Purpose |
+|---|---|---|---|
+| 1 | `backend/` | `discover_districts.py` | Live district code discovery from generic search pages |
+| 2 | `backend/` | `scraper.py` | Main entry point — orchestrates sale + rent scraping |
+| 3 | `backend/` | `rent_proxy.py` | Scrapes rent listings, groups by project+bedroom, calculates median |
+| 4 | `backend/` | `loan.py` | Amortisation formula → monthly repayment |
+| 5 | `backend/` | `score.py` | Scoring engine (7 components, normalisation, weighted sum) |
+| 6 | `backend/` | `config.yaml` | All tunable parameters |
+| 7 | `backend/` | `cities.json` | Area definitions (KL + Selangor) |
+| 8 | root | `rent_cache.db` | Auto-created SQLite — cached rent data per project |
+| 9 | root | `scrape_state.db` | Auto-created SQLite — resume state |
+| 10 | root | `output/all_sales_listings.csv` | Full scraped dataset with all sale metrics + rent estimates |
+| 11 | root | `output/all_rentals_listings.csv` | Raw rent listing data for traceback |
+| 12 | root | `output/top_shortlist.csv` | Ranked shortlist (top 20) |
+| 13 | root | `output/area_progress.csv` | Per-area scrape status, listing counts |
+| 14 | root | `README.md` | Setup & usage instructions |
 
 ---
 
@@ -447,42 +450,60 @@ All values admin-changeable — no code changes needed.
 ## 11. Architecture Diagram (Text)
 
 ```
-cities.json ─────────┐
-                     ▼
-          discover_districts.py ──── live district extraction
-          (generic search pages)     (no cache file) ──── district_map
-                                                  │
-                  config.yaml ──► scraper.py ◄────┘
-                                     │
-                  ┌────────────────────┼────────────────────┐
-                  ▼                    ▼                    ▼
-     sale_listings.db           rent_proxy.py         scrape_state.db
-     (sale_listings table)      (per-project rent)    (resume state)
-                  │                    │
-                  └──────────┬─────────┘
-                             ▼
-                   join by project+bedroom
-                             │
-                    ┌────────┴────────┐
-                    ▼                 ▼
-               loan.py           score.py
-                    │                 │
-                    └────────┬────────┘
-                             ▼
-              ┌──────────────┼──────────────┐
-              ▼              ▼              ▼
-     all_sales_listings  all_rentals     top_shortlist
-     .csv                _listings.csv   .csv
-     
-area_progress.csv (per-area status)
-terminal summary (top 10)
+RentalYield/
+├── backend/                    ← All Python + config
+│   ├── cities.json ─────────┐
+│   │                       ▼
+│   ├── discover_districts.py ──── live district extraction
+│   │   (generic search pages)     (no cache file)
+│   │                                               │
+│   ├── config.yaml ──► scraper.py ◄────────────────┘
+│   │                       │
+│   │       ┌────────────────┼────────────────┐
+│   │       ▼                ▼                ▼
+│   │ scrape_state.db   rent_proxy.py    sale_listings
+│   │ (resume state)    (per-project)    (scrape_state.db)
+│   │       │                │                │
+│   │       └───────┬────────┘                │
+│   │               ▼                         │
+│   │     join by project+bedroom             │
+│   │               │                         │
+│   │        ┌──────┴──────┐                  │
+│   │        ▼             ▼                  │
+│   │   loan.py        score.py               │
+│   │        │             │                  │
+│   │        └──────┬──────┘                  │
+│   │               ▼                         │
+│   │     ┌────────┴────────┐                 │
+│   │     ▼                 ▼                 ▼
+│   │ all_sales_listings  all_rentals      top_shortlist
+│   │ .csv [project dir]  _listings.csv    .csv
+│   │
+├── output/                    ← CSV results
+│   ├── all_sales_listings.csv
+│   ├── all_rentals_listings.csv
+│   ├── top_shortlist.csv
+│   └── area_progress.csv
+│
+├── scrape_state.db            ← Resume state
+├── rent_cache.db              ← Rent cache
+├── PRD.md
+└── readme.md
+
+area_progress.csv (per-area status, in output/)
+terminal summary (top 10, printed to stdout)
 ```
 
 ---
 
 ## 12. CLI Reference
 
+All commands are run from the `backend/` directory:
+
 ```
+cd backend
+pip install cloudscraper beautifulsoup4 lxml pyyaml
+
 python3 scraper.py                         # Full run
 python3 scraper.py --resume                # Resume incomplete scrape
 python3 scraper.py --dry-run               # Discover + preview only
@@ -491,6 +512,8 @@ python3 scraper.py --area "Bangsar"        # Single area
 python3 scraper.py --proxy http://...      # HTTP/HTTPS proxy
 python3 scraper.py --verbose / -v          # Debug logging
 ```
+
+(Or from the project root: `python3 backend/scraper.py [options]`)
 
 ---
 
@@ -512,27 +535,31 @@ python3 scraper.py --verbose / -v          # Debug logging
 RentalYield/
 ├── PRD.md                          ← This document
 ├── readme.md                       ← Setup & usage
-├── cities.json                     ← Area definitions (KL + Selangor)
-├── config.yaml                     ← All tunable parameters
-├── district_cache.yaml             ← Auto-generated (live-discovered district codes)
-├── scrape_state.db                 ← Auto-generated (resume state + sale listings)
-├── rent_cache.db                   ← Auto-generated (rental data cache)
-├── scraper.py                      ← Main entry point
-├── discover_districts.py           ← Live district code discovery
-├── discover_all_codes.py           ← Bulk code discovery script
-├── discover_missing.py             ← Script for unmatched areas
-├── rent_proxy.py                   ← Rent scraper & median calculator
-├── loan.py                         ← Amortisation & cash flow
-├── score.py                        ← Scoring engine
-├── config.yaml                     ← All tunable parameters
-├── save_cache.py                   ← Cache utility script
-├── _debug.md                       ← Runtime notes / debugging
-├── output/
+├── output/                         ← Scraped CSV results
 │   ├── all_sales_listings.csv      ← Full scored dataset
 │   ├── all_rentals_listings.csv    ← Raw rent listings for traceback
 │   ├── top_shortlist.csv           ← Ranked top 20
 │   └── area_progress.csv           ← Per-area scrape status
-├── resources/
-│   └── context.md                  ← Source of scoring weights etc.
-└── README.md
+├── scrape_state.db                 ← Auto-generated (resume state + sale listings)
+├── rent_cache.db                   ← Auto-generated (rental data cache)
+├── backend/                        ← All backend code, config, data files
+│   ├── scraper.py                  ← Main entry point
+│   ├── discover_districts.py       ← Live district code discovery
+│   ├── discover_all_codes.py       ← Bulk code discovery script
+│   ├── discover_missing.py         ← Script for unmatched areas
+│   ├── rent_proxy.py               ← Rent scraper & median calculator
+│   ├── loan.py                     ← Amortisation & cash flow
+│   ├── score.py                    ← 7-component scoring engine
+│   ├── save_cache.py               ← Cache utility script
+│   ├── config.yaml                 ← All tunable parameters
+│   ├── cities.json                 ← KL & Selangor area definitions
+│   ├── district_cache.yaml         ← Cached district codes
+│   ├── resources/
+│   │   └── context.md              ← Source of scoring weights etc.
+│   ├── .env.example
+│   ├── .gitignore
+│   ├── COMMANDS.txt
+│   └── _debug.md                   ← Runtime notes / debugging
 ```
+
+All commands should be run from the `backend/` directory (or use `python3 backend/scraper.py` from the project root).
